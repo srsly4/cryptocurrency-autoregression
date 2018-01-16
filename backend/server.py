@@ -1,6 +1,7 @@
 from json import JSONEncoder
 from threading import Event
 
+import time
 from websocket_server import WebsocketServer, logging
 from websocket import WebSocket
 from backend.API import fetch_history, get_current
@@ -28,6 +29,7 @@ def update(server):
     data = {} if not res else res.json()
     msg = {
         'type': 'UPDATE',
+        'timestamp': int(time.time()),
         'data': data,
     }
     print(msg)
