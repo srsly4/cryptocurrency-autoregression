@@ -96,8 +96,26 @@ export default class Tracking extends React.Component {
     Plotly.plot(this.graphId, data, layout);
 
     const socket = new WebSocket(this.props.tracking.serverUrl);
+    this.setState({ socket });
     socket.onopen = () => {
       console.log('Socket opened');
+      socket.send(JSON.stringify({
+        type: 'REQUEST_CURRENCY',
+        records: 1440, // 24h
+        currency: this.props.tracking.currency,
+        outputCurrency: this.props.tracking.outputCurrency,
+      }));
+
+      const startDate = new Date();
+      const endDate = new Date(startDate);
+      endDate.setMinutes(endDate.getMinutes() + 10);
+
+      socket.send(JSON.stringify({
+        type: 'REQUEST_FORECAST',
+        startTimestamp: Math.round(startDate.valueOf()/1000),
+        endTimestamp: Math.round(endDate.valueOf()/1000)
+      }));
+
     };
     socket.onmessage = (msg) => {
       if (msg.data && typeof msg.data === 'string') {
@@ -135,8 +153,8 @@ export default class Tracking extends React.Component {
 
     };
 
-    // const arInterval = setInterval(updateAR, 60000);
-    // updateAR();
+    const arInterval = setInterval(updateAR, 60000);
+    updateAR();
 
     // const interval = setInterval(function() {
     //
