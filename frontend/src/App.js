@@ -58,7 +58,7 @@ class App extends Component {
                                   verticalAlign="middle" stretched={false}>
                       <StartTrackingForm onCreateTracking={this.onCreateTracking.bind(this)} />
                        <Segment>
-                         <Image src="/extrapolating.png" centered className="xkdc-image" />
+                         <Image src="/extrapolating.png" centered className="xkcd-image" />
                        </Segment>
                      </Grid.Column>
                    </Grid>
