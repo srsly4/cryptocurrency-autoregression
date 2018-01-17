@@ -1,28 +1,45 @@
+@import url('https://fonts.googleapis.com/css?family=Lato:400,700&subset=latin-ext');
+
+body {
+    font-family: "Lato", "Arial", sans-serif;
+}
+
 .App {
-  text-align: center;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    top: 0;
+    left: 0;
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
+.fluid-container {
+    position: absolute;
+    top: 4rem;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
 }
 
-.App-header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
-  color: white;
+.fluid-container .main-grid, .fluid-container>.container {
+    height: 100%;
 }
 
-.App-title {
-  font-size: 1.5em;
+.fluid-container>.container {
+    /* ?? */
+    margin-top: 1rem;
 }
 
-.App-intro {
-  font-size: large;
+.top-bar-container {
+    height: 4rem;
+    background: #000;
 }
 
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.sidebar {
+    background: #DDD;
+}
+
+.content {
+    position: relative;
 }
