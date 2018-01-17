@@ -1,0 +1,6 @@
+-e git+https://github.com/Pithikos/python-websocket-server#egg=websocket-server
+requests
+pandas
+matplotlib
+statsmodels
+sklearn

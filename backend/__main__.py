@@ -2,5 +2,10 @@ import logging
 
 from backend import start_server
 
-if __name__ == '__main__':
+
+def main():
     start_server(logging.INFO)
+
+
+if __name__ == '__main__':
+    main()
