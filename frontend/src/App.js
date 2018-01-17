@@ -37,6 +37,7 @@ class App extends Component {
     return (
       <div className="App">
         <div className="top-bar-container">
+          <h1>Cryptocurrency autoregression live-model</h1>
         </div>
         <div className="fluid-container">
           <Container fluid={true}>
