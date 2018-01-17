@@ -1,3 +1,18 @@
 # Cryptocurrency autoregression
 
-todo...
+## Frontend
+
+To run frontend in dev mode:
+
+```
+yarn install
+yarn start
+```
+
+To build production package:
+
+```
+yarn install
+yarn build
+```
+
