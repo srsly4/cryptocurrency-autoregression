@@ -65,12 +65,15 @@ def default_handler(client, server, message):
     server.send_message(client, JSONEncoder().encode(msg))
 
 
-def new_message(client, server, message):
-    message = json.loads(message)
-    handler = {
+handlers = {
         'REQUEST_CURRENCY': data_request,
         'REQUEST_FORECAST': forecast_request,
-    }.get(message.get('type'), default_handler)(client, server, message)
+    }
+
+
+def new_message(client, server, message):
+    message = json.loads(message)
+    handlers.get(message.get('type'), default_handler)(client, server, message)
 
 
 def update(server):
