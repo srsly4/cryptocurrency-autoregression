@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Dropdown, Segment} from 'semantic-ui-react';
+import {Dropdown, Form, FormField, Segment} from 'semantic-ui-react';
 
 
 export default class ScaleChanger extends React.Component {
@@ -11,7 +11,7 @@ export default class ScaleChanger extends React.Component {
 
   static propTypes = {
     onChange: PropTypes.func,
-  }
+  };
 
   static scaleOptions = [
     {
@@ -47,12 +47,16 @@ export default class ScaleChanger extends React.Component {
   }
 
   render() {
-    return (<Segment raised={true}>
-      <h3>Chart scale</h3>
-      <Dropdown selection fluid
-                defaultValue={5} options={ScaleChanger.scaleOptions}
-                onChange={this.onChange.bind(this)} />
-    </Segment>)
+    return (<div>
+      <Form>
+        <FormField>
+          <label>Chart scale</label>
+          <Dropdown selection fluid
+                    defaultValue={5} options={ScaleChanger.scaleOptions}
+                    onChange={this.onChange.bind(this)} />
+        </FormField>
+      </Form>
+    </div>)
   }
 
 }
