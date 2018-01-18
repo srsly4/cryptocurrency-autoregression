@@ -49,7 +49,6 @@ export default class Tracking extends React.Component {
     }
 
 
-    console.log('Autoforecast length: ' + this.props.autoForecastTime);
     if (!this.state.autoForecastProcessing && (!this.state.nextAutoForecast
       || this.state.nextAutoForecast.getTime() < Date.now())) {
       const startDate = this.state.nextAutoForecast ? new Date(this.state.nextAutoForecast) : new Date();
@@ -162,8 +161,6 @@ export default class Tracking extends React.Component {
       const nextDate = new Date(startDate);
       nextDate.setMinutes(nextDate.getMinutes() + nextProps.autoForecastInterval);
       this.setState({ nextAutoForecast: nextDate });
-      console.log('Next autoforecast on: ');
-      console.log(nextDate);
     }
   }
 
@@ -173,7 +170,6 @@ export default class Tracking extends React.Component {
     const socket = new WebSocket(this.props.tracking.serverUrl);
     this.setState({ socket });
     socket.onopen = () => {
-      console.log('Socket opened');
       socket.send(JSON.stringify({
         type: 'REQUEST_CURRENCY',
         records: 1440, // 24h
