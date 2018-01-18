@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Button, Divider, Dropdown, Form, FormField, Icon, Input, Label, Segment} from 'semantic-ui-react';
+import {Button, Divider, Dropdown, Form, FormField, Icon, Input, Segment} from 'semantic-ui-react';
 
 
 export default class StartTrackingForm extends React.Component {
@@ -24,6 +24,10 @@ export default class StartTrackingForm extends React.Component {
       value: 'BTC',
     },
     {
+      text: 'Ethereum',
+      value: 'ETH',
+    },
+    {
       text: 'Monero',
       value: 'XMR',
     }
@@ -33,7 +37,15 @@ export default class StartTrackingForm extends React.Component {
     {
       text: 'USD',
       value: 'USD'
-    }
+    },
+    {
+      text: 'Polski zloty (PLN)',
+      value: 'PLN',
+    },
+    {
+      text: 'Bitcoin (BTC)',
+      value: 'BTC',
+    },
   ];
 
   onCreateClick() {
