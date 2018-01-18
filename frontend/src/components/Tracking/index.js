@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Plotly from 'plotly.js/lib/core';
 
-import {Container, Dimmer, Header, Icon} from 'semantic-ui-react';
+import {Dimmer, Header, Icon} from 'semantic-ui-react';
 
 import './style.css';
 
@@ -15,17 +15,63 @@ export default class Tracking extends React.Component {
 
     this.state = {
       socket: null,
+      autoForecastTimer : null,
+      autoForecastProcessing: false,
+      lastAutoForecast: null,
+      nextAutoForecast: null,
       initialDataLoaded: false,
-    }
+    };
+
+    this.currentColorIndex = 0;
   }
 
   static DEFAULT_SCALE = 5;
+  static DEFAULT_AUTOFORECAST_TIME = 1;
+  static DEFAULT_AUTOFORECAST_INTERVAL = 1;
+  static FORECAST_COLORS = ['#4F77FF' , '#48E88C', '#FFF55C', '#E88448', '#A782FF'];
+  static CURRENCY_COLOR = '#0C1447';
 
   static propTypes = {
     tracking: PropTypes.object,
     timescale: PropTypes.number,
+    autoForecastTime: PropTypes.number,
+    autoForecastInterval: PropTypes.number,
   };
 
+
+  autoForecast() {
+    if (!this.state.autoForecastTimer) {
+      const timer = setInterval(this.autoForecast.bind(this), 1000);
+      this.setState({
+        autoForecastTimer: timer,
+      });
+      return;
+    }
+
+
+    console.log('Autoforecast length: ' + this.props.autoForecastTime);
+    if (!this.state.autoForecastProcessing && (!this.state.nextAutoForecast
+      || this.state.nextAutoForecast.getTime() < Date.now())) {
+      const startDate = this.state.nextAutoForecast ? new Date(this.state.nextAutoForecast) : new Date();
+      const endDate = new Date(startDate);
+      endDate.setMinutes(endDate.getMinutes() + (this.props.autoForecastTime || Tracking.DEFAULT_AUTOFORECAST_TIME));
+
+      this.state.socket.send(JSON.stringify({
+        type: 'REQUEST_FORECAST',
+        startTimestamp: Math.round(startDate.valueOf()/1000),
+        endTimestamp: Math.round(endDate.valueOf()/1000)
+      }));
+
+      const nextDate = new Date(startDate);
+      nextDate.setMinutes(nextDate.getMinutes() + (this.props.autoForecastInterval || Tracking.DEFAULT_AUTOFORECAST_INTERVAL));
+
+      this.setState({
+        autoForecastProcessing: true,
+        nextAutoForecast: nextDate,
+      });
+    }
+
+  }
 
   rescaleGraph(relativeTime, forceScale) {
     const time = relativeTime || new Date();
@@ -48,7 +94,19 @@ export default class Tracking extends React.Component {
   }
 
   initializeGraph() {
+    const data = [{
+      x: [],
+      y: [],
+      mode: 'lines',
+      line: {color: Tracking.CURRENCY_COLOR, width: 4 }
+    }];
 
+    const layout = {
+      autosize: true,
+      showlegend: false,
+    };
+
+    Plotly.plot(this.graphId, data, layout);
   }
 
   setInitialCurrencyState(packet) {
@@ -60,6 +118,25 @@ export default class Tracking extends React.Component {
     this.rescaleGraph();
     Plotly.prependTraces(this.graphId, prepend, [0]);
     this.setState({ initialDataLoaded: true });
+  }
+
+  drawForecast(packet) {
+    this.setState({ lastAutoForecast: new Date(), autoForecastProcessing: false });
+    const arData = {
+      x: (packet.data.x || []).map(point => point*1000),
+      y: packet.data.y || [],
+      mode: 'lines',
+      title: 'Forecast',
+      line: { color: Tracking.FORECAST_COLORS[this.currentColorIndex] }
+    };
+
+    Plotly.addTraces(this.graphId, arData);
+
+
+    this.currentColorIndex += 1;
+    if (this.currentColorIndex >= Tracking.FORECAST_COLORS.length) {
+      this.currentColorIndex = 0;
+    }
   }
 
   updateCurrency(packet) {
@@ -79,21 +156,19 @@ export default class Tracking extends React.Component {
     if (typeof nextProps.timescale === 'number' && nextProps.timescale !== this.props.timescale) {
       this.rescaleGraph(null, nextProps.timescale);
     }
+
+    if (nextProps.autoForecastInterval !== this.props.autoForecastInterval) {
+      const startDate = this.state.lastAutoForecast ? new Date(this.state.lastAutoForecast) : new Date();
+      const nextDate = new Date(startDate);
+      nextDate.setMinutes(nextDate.getMinutes() + nextProps.autoForecastInterval);
+      this.setState({ nextAutoForecast: nextDate });
+      console.log('Next autoforecast on: ');
+      console.log(nextDate);
+    }
   }
 
   componentDidMount() {
-    const data = [{
-      x: [],
-      y: [],
-      mode: 'lines',
-      line: {color: '#80CAF6'}
-    }];
-
-    const layout = {
-      autosize: true,
-    };
-
-    Plotly.plot(this.graphId, data, layout);
+    this.initializeGraph();
 
     const socket = new WebSocket(this.props.tracking.serverUrl);
     this.setState({ socket });
@@ -106,16 +181,7 @@ export default class Tracking extends React.Component {
         outputCurrency: this.props.tracking.outputCurrency,
       }));
 
-      const startDate = new Date();
-      const endDate = new Date(startDate);
-      endDate.setMinutes(endDate.getMinutes() + 10);
-
-      socket.send(JSON.stringify({
-        type: 'REQUEST_FORECAST',
-        startTimestamp: Math.round(startDate.valueOf()/1000),
-        endTimestamp: Math.round(endDate.valueOf()/1000)
-      }));
-
+      this.autoForecast();
     };
     socket.onmessage = (msg) => {
       if (msg.data && typeof msg.data === 'string') {
@@ -126,64 +192,13 @@ export default class Tracking extends React.Component {
         if (packet.type === 'INITIAL_STATE') {
           this.setInitialCurrencyState(packet);
         }
+        if (packet.type === 'FORECAST') {
+          this.drawForecast(packet);
+        }
       }
 
     };
-
-
     this.setState({ socket });
-
-    const updateAR = () => {
-      const arData = {
-        x: [],
-        y: [],
-        mode: 'lines',
-        line: { color: '#EFDD00' }
-      };
-
-      let cursor = new Date();
-
-      for (let i = 0; i < 60; i++) {
-        arData.x.push(cursor.valueOf());
-        arData.y.push(9500 + 1000*Math.random());
-        cursor.setSeconds(cursor.getSeconds()+1);
-      }
-
-      Plotly.addTraces(this.graphId, arData);
-
-    };
-
-    const arInterval = setInterval(updateAR, 60000);
-    updateAR();
-
-    // const interval = setInterval(function() {
-    //
-    //   let time = new Date();
-    //
-    //   const update = {
-    //     x:  [[time.valueOf()]],
-    //     y: [[Math.random()]]
-    //   };
-    //
-    //   const olderTime = new Date(time);
-    //   const futureTime = new Date(time);
-    //   futureTime.setMinutes(time.getMinutes() + 1);
-    //   olderTime.setMinutes(time.getMinutes() - 1);
-    //
-    //
-    //   const minuteView = {
-    //     xaxis: {
-    //       type: 'date',
-    //       range: [olderTime.valueOf(),futureTime.valueOf()],
-    //       fixedrange: true,
-    //       autorange: false,
-    //     }
-    //   };
-    //
-    //   Plotly.relayout('mainGraph', minuteView);
-    //   Plotly.extendTraces('mainGraph', update, [0]);
-    //
-    // }, 1000);
   }
 
   render() {

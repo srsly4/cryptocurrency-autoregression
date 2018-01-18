@@ -57,3 +57,7 @@ body {
 .content {
     position: relative;
 }
+
+.xkcd-image {
+    max-width: 360px !important;
+}

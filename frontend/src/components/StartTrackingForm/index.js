@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Button, Divider, Dropdown, Form, FormField, Icon, Input, Label, Segment} from 'semantic-ui-react';
+import {Button, Divider, Dropdown, Form, FormField, Icon, Input, Segment} from 'semantic-ui-react';
 
 
 export default class StartTrackingForm extends React.Component {
