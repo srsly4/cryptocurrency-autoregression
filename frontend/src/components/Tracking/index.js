@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Plotly from 'plotly.js/lib/core';
 
-import {Container, Dimmer, Header, Icon} from 'semantic-ui-react';
+import {Dimmer, Header, Icon} from 'semantic-ui-react';
 
 import './style.css';
 

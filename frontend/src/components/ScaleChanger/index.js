@@ -1,13 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Dropdown, Form, FormField, Segment} from 'semantic-ui-react';
+import {Dropdown, Form, FormField} from 'semantic-ui-react';
 
 
 export default class ScaleChanger extends React.Component {
-
-  constructor(props) {
-    super(props);
-  }
 
   static propTypes = {
     onChange: PropTypes.func,
