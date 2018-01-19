@@ -13,8 +13,8 @@ class ArimaRegressor:
         self._prediction_time = None
 
     def feed_data(self, list_x, list_y):
-        self._history_x.append(list_x)
-        self._history_y.append(list_y)
+        self._history_x.extend(list_x)
+        self._history_y.extend(list_y)
 
     def predict(self, test_x) -> list:
 
@@ -35,7 +35,7 @@ class ArimaRegressor:
 
         # compute predicted value
         yhat = (-2 * random.random() + 1) * abs(model_fit.forecast()[0] + model_fit.forecast()[1])
-        yhat = inv_difference(history, yhat, 1)
+        yhat = inv_difference(history, yhat, 1)[0]
         predictions.append(yhat)
 
         # use predicted value in next prediction
@@ -47,7 +47,7 @@ class ArimaRegressor:
             model = ARIMA(diff, order=(0, 0, 1))
             model_fit = model.fit(trend='nc', disp=0)
             yhat = (-2 * random.random() + 1) * abs(model_fit.forecast()[0] + model_fit.forecast()[1])
-            yhat = inv_difference(history, yhat, 1)
+            yhat = inv_difference(history, yhat, 1)[0]
             predictions.append(yhat)
             history.append(yhat)
 

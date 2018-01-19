@@ -39,7 +39,7 @@ def get_model(server, currency, output_currency):
     if not model:
         data = fetch_history(2000, currency=currency, output_currency=output_currency).json().get('Data')
         model = server.models[currency][output_currency] = \
-            ArimaRegressor([x['close'] for x in data], [x['time'] for x in data])
+            ArimaRegressor([x['time'] for x in data], [x['close'] for x in data])
 
     return model
 
@@ -64,7 +64,7 @@ def data_request(client, server, message):
         }
 
         model = get_model(server, currency, output_currency)
-        model.feed_data([x['close'] for x in data], [x['time'] for x in data])
+        model.feed_data([x['time'] for x in data], [x['close'] for x in data])
 
         server.send_message(client, JSONEncoder().encode(msg))
     else:
@@ -82,7 +82,8 @@ def forecast_request(client, server, message):
     end = message.get('endTimestamp', 0)
     model = get_model(server, currency, output_currency)
     # data = random_generator(start, end, 5)
-    data = model.predict(list(range(start, end, 5)))
+    x = list(range(start, end, 5))
+    data = {'x': x, 'y': model.predict(x)}
     msg = {
         'type': 'FORECAST',
         'data': data
@@ -116,11 +117,17 @@ def update(server):
         output_currency = clients[0].get('output_currency')
         res = get_current(currency, output_currency)
         data = {} if not res else res.json()
+        try:
+            model = server.models.get(currency, {}).get(output_currency)
+        except AttributeError:
+            model = None
         msg = {
             'type': 'UPDATE',
             'timestamp': int(time.time()),
             'data': data,
         }
+        if model:
+            model.feed_data([msg['timestamp']], [data.get(output_currency)])
         for client in clients:
             if (client.get('currency'), client.get('output_currency')) == (currency, output_currency):
                 server.send_message(client, JSONEncoder().encode(msg))
