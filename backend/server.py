@@ -9,6 +9,8 @@ from backend.API import fetch_history, get_current
 from backend.cron_updating import Timer
 from random import Random
 
+from backend.arima import ArimaRegressor
+
 PORT = 9001
 IP = '127.0.0.1'
 
@@ -23,6 +25,25 @@ def random_generator(start, end, period):
     return {'x': x, 'y': [11500 + 1000 * (rand.random() - 0.5) for _ in x]}
 
 
+def get_model(server, currency, output_currency):
+    try:
+        model = server.models.get(currency)
+        if model:
+            model = model.get(output_currency)
+        else:
+            model[currency] = {}
+    except AttributeError:
+        model = None
+        server.models = {currency: {}}
+
+    if not model:
+        data = fetch_history(2000, currency=currency, output_currency=output_currency).json().get('Data')
+        model = server.models[currency][output_currency] = \
+            ArimaRegressor([x['close'] for x in data], [x['time'] for x in data])
+
+    return model
+
+
 def new_client(client, server):
     print('New client connected')
     print(client)
@@ -34,12 +55,17 @@ def data_request(client, server, message):
         message.get('currency'), message.get('outputCurrency')
     res = fetch_history(message.get('records'), currency=currency,
                         output_currency=output_currency)
+
     if res:
         data = res.json().get('Data', [])
         msg = {
             'type': 'INITIAL_STATE',
             'data': data,
         }
+
+        model = get_model(server, currency, output_currency)
+        model.feed_data([x['close'] for x in data], [x['time'] for x in data])
+
         server.send_message(client, JSONEncoder().encode(msg))
     else:
         print('Error while fetching data')
@@ -47,9 +73,16 @@ def data_request(client, server, message):
 
 
 def forecast_request(client, server, message):
+    try:
+        currency = client.currency
+        output_currency = client.output_currency
+    except AttributeError:
+        currency, output_currency = 'BTC', 'USD'
     start = message.get('startTimestamp', 0)
     end = message.get('endTimestamp', 0)
-    data = random_generator(start, end, 5)
+    model = get_model(server, currency, output_currency)
+    # data = random_generator(start, end, 5)
+    data = model.predict(list(range(start, end, 5)))
     msg = {
         'type': 'FORECAST',
         'data': data

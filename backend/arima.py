@@ -1,10 +1,8 @@
 import random
 import time
 from statsmodels.tsa.arima_model import ARIMA
-from differencing import difference
-from differencing import inv_difference
-import pandas as pd
-from matplotlib import pyplot
+from backend.differencing import difference
+from backend.differencing import inv_difference
 
 
 class ArimaRegressor:
@@ -16,7 +14,7 @@ class ArimaRegressor:
 
     def feed_data(self, list_x, list_y):
         self._history_x.append(list_x)
-        self._history_x.append(list_y)
+        self._history_y.append(list_y)
 
     def predict(self, test_x) -> list:
 
