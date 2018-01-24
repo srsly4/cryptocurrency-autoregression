@@ -1,8 +1,3 @@
-from pandas import Series
-from matplotlib import pyplot
-import pandas as pd
-
-
 def difference(dataset, interval=1):
     diff = list()
     for i in range(interval, len(dataset)):

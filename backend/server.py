@@ -81,8 +81,7 @@ def forecast_request(client, server, message):
     start = message.get('startTimestamp', 0)
     end = message.get('endTimestamp', 0)
     model = get_model(server, currency, output_currency)
-    # data = random_generator(start, end, 5)
-    x = list(range(start, end, 5))
+    x = list(range(start, end + 1, 60))
     data = {'x': x, 'y': model.predict(x)}
     msg = {
         'type': 'FORECAST',
@@ -117,21 +116,36 @@ def update(server):
         output_currency = clients[0].get('output_currency')
         res = get_current(currency, output_currency)
         data = {} if not res else res.json()
-        try:
-            model = server.models.get(currency, {}).get(output_currency)
-        except AttributeError:
-            model = None
+        # try:
+        #     model = server.models.get(currency, {}).get(output_currency)
+        # except AttributeError:
+        #     model = None
         msg = {
             'type': 'UPDATE',
             'timestamp': int(time.time()),
             'data': data,
         }
-        if model:
-            model.feed_data([msg['timestamp']], [data.get(output_currency)])
+        # if model:
+        #     model.feed_data([msg['timestamp']], [data.get(output_currency)])
         for client in clients:
             if (client.get('currency'), client.get('output_currency')) == (currency, output_currency):
                 server.send_message(client, JSONEncoder().encode(msg))
                 clients.remove(client)
+
+
+def update_models(server):
+    for currency in server.models:
+        for output_currency in server.models.get(currency):
+            model = get_model(server, currency, output_currency)
+            print("Updating model {}-{}".format(currency, output_currency))
+            res = get_current(currency, output_currency)
+            data = {} if not res else res.json()
+            msg = {
+                'type': 'UPDATE',
+                'timestamp': int(time.time()),
+                'data': data,
+            }
+            model.feed_data([msg['timestamp']], [data.get(output_currency)])
 
 
 def print_clients(server):
@@ -144,6 +158,8 @@ def start_server(loglevel=logging.WARNING):
     server = WebsocketServer(PORT, IP, loglevel)
     timer = Timer(5, update, stop_event, server)
     timer.start()
+    timer2 = Timer(60, update_models, stop_event, server)
+    timer2.start()
     server.set_fn_new_client(new_client)
     server.set_fn_message_received(new_message)
     server.run_forever()
