@@ -31,7 +31,7 @@ def get_model(server, currency, output_currency):
         if model:
             model = model.get(output_currency)
         else:
-            model[currency] = {}
+            server.models[currency] = {}
     except AttributeError:
         model = None
         server.models = {currency: {}}
