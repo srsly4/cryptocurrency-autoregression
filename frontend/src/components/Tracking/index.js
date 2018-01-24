@@ -97,12 +97,16 @@ export default class Tracking extends React.Component {
       x: [],
       y: [],
       mode: 'lines',
+      name: this.props.tracking.currency,
       line: {color: Tracking.CURRENCY_COLOR, width: 4 }
     }];
 
     const layout = {
       autosize: true,
       showlegend: false,
+      yaxis: {
+        title: this.props.tracking.outputCurrency,
+      },
     };
 
     Plotly.plot(this.graphId, data, layout);
@@ -126,6 +130,7 @@ export default class Tracking extends React.Component {
       y: packet.data.y || [],
       mode: 'lines',
       title: 'Forecast',
+      name: `Forecast ${this.state.lastAutoForecast.toUTCString()}`,
       line: { color: Tracking.FORECAST_COLORS[this.currentColorIndex] }
     };
 

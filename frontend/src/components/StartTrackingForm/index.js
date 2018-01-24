@@ -36,8 +36,16 @@ export default class StartTrackingForm extends React.Component {
       value: 'ADA',
     },
     {
-      text: 'Litecoin',
+      text: 'DogeCoin',
+      value: 'DOGE',
+    },
+    {
+      text: 'LiteCoin',
       value: 'LTC',
+    },
+    {
+      text: 'CannabisCoin',
+      value: 'CANN',
     }
   ];
 
